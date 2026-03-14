@@ -1,0 +1,5 @@
+{
+  "name": "FiscalControl V3 ",
+  "description": "Sistema de control de pagos fiscales, parafiscales y servicios con integración a Google Sheets y WhatsApp.",
+  "requestFramePermissions": []
+}

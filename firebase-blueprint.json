@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user with role-based access",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "payer", "viewer"] },
+        "email": { "type": "string", "format": "email" }
+      },
+      "required": ["username", "name", "role"]
+    },
+    "PaymentRecord": {
+      "title": "PaymentRecord",
+      "description": "Fiscal, parafiscal or service payment record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "dateRegistered": { "type": "string", "format": "date-time" },
+        "organism": { "type": "string" },
+        "paymentType": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentDateReal": { "type": "string", "format": "date-time" },
+        "unitCode": { "type": "string" },
+        "unitName": { "type": "string" },
+        "municipality": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending Review", "Approved", "Rejected"] },
+        "description": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["organism", "paymentType", "amount", "paymentDateReal", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/payments/{paymentId}": {
+      "schema": "PaymentRecord",
+      "description": "Payment records"
+    }
+  }
+}

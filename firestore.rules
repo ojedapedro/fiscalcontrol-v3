@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (Firebase Auth UID)
+    // Fields:
+    //   - username: string (required)
+    //   - name: string (required)
+    //   - role: string (required, enum: admin, payer, viewer)
+    //   - email: string (optional, format: email)
+    //
+    // Collection: payments
+    // Document ID: paymentId
+    // Fields:
+    //   - id: string (required)
+    //   - dateRegistered: string (required, ISO 8601)
+    //   - organism: string (required)
+    //   - paymentType: string (required)
+    //   - amount: number (required, positive)
+    //   - paymentDateReal: string (required, ISO 8601)
+    //   - unitCode: string (required)
+    //   - unitName: string (required)
+    //   - municipality: string (required)
+    //   - status: string (required, enum: Pending Review, Approved, Rejected)
+    //   - description: string (optional)
+    //   - contactPhone: string (optional)
+    //   - createdBy: string (required, userId)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        ((request.auth.token.email == "analistadedatosnova@gmail.com" && request.auth.token.email_verified == true) ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+    }
+
+    function isPayer() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'payer';
+    }
+
+    function isViewer() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'viewer';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['username', 'name', 'role']) &&
+             data.username is string && data.username.size() > 0 && data.username.size() < 50 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.role in ['admin', 'payer', 'viewer'] &&
+             (!('email' in data) || (isValidEmail(data.email) && data.email.size() < 100));
+    }
+
+    function isValidPayment(data, isCreate) {
+      return data.keys().hasAll(['organism', 'paymentType', 'amount', 'paymentDateReal', 'status', 'createdBy']) &&
+             data.organism is string && data.organism.size() > 0 && data.organism.size() < 200 &&
+             data.paymentType is string && data.paymentType.size() < 100 &&
+             data.amount is number && data.amount >= 0 &&
+             isValidDateString(data.paymentDateReal) &&
+             data.status in ['Pending Review', 'Approved', 'Rejected'] &&
+             data.createdBy is string && 
+             (isCreate ? data.createdBy == request.auth.uid : data.createdBy == resource.data.createdBy) &&
+             (!('description' in data) || (data.description is string && data.description.size() < 1000)) &&
+             (!('contactPhone' in data) || (data.contactPhone is string && data.contactPhone.size() < 30));
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && 
+                    (request.resource.data.role != 'admin' || isAdmin());
+      allow update: if isAdmin() && isValidUser(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated();
+      allow create: if (isAdmin() || isPayer()) && isValidPayment(request.resource.data, true);
+      allow update: if (isAdmin() || isViewer() || (isPayer() && resource.data.createdBy == request.auth.uid)) && isValidPayment(request.resource.data, false);
+      allow delete: if isAdmin();
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
