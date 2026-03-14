@@ -44,7 +44,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       onLogin(userData);
     } catch (err: any) {
       console.error("Login error:", err);
-      setError(err.message || "Error al iniciar sesión con Google");
+      if (err.code === 'auth/unauthorized-domain') {
+        setError(
+          `Dominio no autorizado. Por favor, agregue "${window.location.hostname}" a la lista de dominios autorizados en la consola de Firebase (Authentication > Settings > Authorized domains).`
+        );
+      } else {
+        setError(err.message || "Error al iniciar sesión con Google");
+      }
     } finally {
       setLoading(false);
     }
