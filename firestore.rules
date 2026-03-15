@@ -67,7 +67,9 @@ service cloud.firestore {
     }
 
     function isValidDateString(dateStr) {
-      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+      return dateStr is string && 
+        (dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$") || 
+         dateStr.matches("^\\d{4}-\\d{2}-\\d{2}$"));
     }
 
     // ===============================================================
@@ -91,6 +93,10 @@ service cloud.firestore {
              data.status in ['Pending Review', 'Approved', 'Rejected'] &&
              data.createdBy is string && 
              (isCreate ? data.createdBy == request.auth.uid : data.createdBy == resource.data.createdBy) &&
+             (!('dateRegistered' in data) || isValidDateString(data.dateRegistered)) &&
+             (!('unitCode' in data) || (data.unitCode is string && data.unitCode.size() < 50)) &&
+             (!('unitName' in data) || (data.unitName is string && data.unitName.size() < 200)) &&
+             (!('municipality' in data) || (data.municipality is string && data.municipality.size() < 100)) &&
              (!('description' in data) || (data.description is string && data.description.size() < 1000)) &&
              (!('contactPhone' in data) || (data.contactPhone is string && data.contactPhone.size() < 30));
     }
