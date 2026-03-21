@@ -48,6 +48,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         setError(
           `Dominio no autorizado. Por favor, agregue "${window.location.hostname}" a la lista de dominios autorizados en la consola de Firebase (Authentication > Settings > Authorized domains).`
         );
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError(
+          "El inicio de sesión con Google no está habilitado en la consola de Firebase. Por favor, actívelo en Authentication > Sign-in method > Google."
+        );
       } else {
         setError(err.message || "Error al iniciar sesión con Google");
       }
