@@ -3,6 +3,7 @@
   "appId": "1:25215105165:web:3a2afff7a20ae6ae428ac4",
   "apiKey": "AIzaSyBDlyulomv_7lSYvH2Nmp70_tDGToKswhY",
   "authDomain": "fiscalcontrolv3.firebaseapp.com",
+  "databaseURL": "https://fiscalcontrolv3-default-rtdb.firebaseio.com/",
   "firestoreDatabaseId": "(default)",
   "storageBucket": "fiscalcontrolv3.firebasestorage.app",
   "messagingSenderId": "25215105165",
