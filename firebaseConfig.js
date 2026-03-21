@@ -6,9 +6,10 @@ import { getAnalytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+var firebaseConfig = {
   apiKey: "AIzaSyBDlyulomv_7lSYvH2Nmp70_tDGToKswhY",
   authDomain: "fiscalcontrolv3.firebaseapp.com",
+  DatabaseURL: "https://fiscalcontrolv3-default-rtdb.firebaseio.com/",
   projectId: "fiscalcontrolv3",
   storageBucket: "fiscalcontrolv3.firebasestorage.app",
   messagingSenderId: "25215105165",
@@ -17,5 +18,5 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+firebaseConfig.initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
